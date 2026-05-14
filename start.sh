@@ -381,6 +381,15 @@ step_download() {
     rm -rf "$zip" "$tmp"
   fi
 
+  # Remove files that have no place in a production install
+  local -a unwanted=(
+    .git .gitattributes .gitignore
+    handoff.md HOMELAB_COMPLETE_GUIDE.md QUICK_REFERENCE.md LICENSE
+  )
+  for item in "${unwanted[@]}"; do
+    rm -rf "${INSTALL_DIR:?}/$item"
+  done
+
   ok "Repository ready at $INSTALL_DIR"
   echo
 }
@@ -549,6 +558,13 @@ DONE
   echo
   hr
   echo
+
+  # Self-delete — the installer has no use after setup is complete
+  local self="${INSTALL_DIR}/start.sh"
+  if [[ -f "$self" ]]; then
+    rm -f "$self"
+    info "Installer removed: $self"
+  fi
 }
 
 # ─── Main ─────────────────────────────────────────────────────────────────────
