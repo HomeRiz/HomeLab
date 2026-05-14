@@ -37,30 +37,44 @@
       docker-proxy:
         condition: service_healthy
 
-  # WAF & Security
-  openappsec-orchestrator:
+  # WAF & Security — open-appsec (https://docs.openappsec.io)
+  appsec-agent:
     extends:
       file: openappsec/compose.yaml
-      service: openappsec-orchestrator
-    env_file:
-      - .env
-      - openappsec/.env
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  openappsec-agent-1:
-    extends:
-      file: openappsec/compose.yaml
-      service: openappsec-agent-1
+      service: appsec-agent
     env_file:
       - .env
       - openappsec/.env
 
-  openappsec-agent-2:
+  appsec-nginx:
     extends:
       file: openappsec/compose.yaml
-      service: openappsec-agent-2
+      service: appsec-nginx
+    env_file:
+      - .env
+      - openappsec/.env
+
+  # Standalone learning services — only active when COMPOSE_PROFILES=standalone
+  appsec-smartsync:
+    extends:
+      file: openappsec/compose.yaml
+      service: appsec-smartsync
+    env_file:
+      - .env
+      - openappsec/.env
+
+  appsec-shared-storage:
+    extends:
+      file: openappsec/compose.yaml
+      service: appsec-shared-storage
+    env_file:
+      - .env
+      - openappsec/.env
+
+  appsec-tuning-svc:
+    extends:
+      file: openappsec/compose.yaml
+      service: appsec-tuning-svc
     env_file:
       - .env
       - openappsec/.env

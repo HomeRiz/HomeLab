@@ -164,7 +164,7 @@ get_services() {
   case "$1" in
     crowdsec)               echo "crowdsec crowdsec-bouncer" ;;
     crowdsec-console)       echo "crowdsec-console" ;;
-    openappsec)             echo "openappsec-orchestrator openappsec-agent-1 openappsec-agent-2" ;;
+    openappsec)             echo "appsec-agent appsec-nginx" ;;
     authelia)               echo "authelia" ;;
     geoip-blocker)          echo "geoip-blocker" ;;
     anubis)                 echo "anubis" ;;
@@ -458,6 +458,16 @@ step_start() {
   fi
   echo
 
+  # Remind about open-appsec token if selected (not blocking — works without one in standalone mode)
+  if printf '%s\n' "${SELECTED_APPS[@]}" | grep -q "^openappsec$"; then
+    echo
+    warn "open-appsec: set APPSEC_AGENT_TOKEN in openappsec/.env to connect to"
+    warn "the cloud Web UI at https://my.openappsec.io"
+    warn "Without a token, add COMPOSE_PROFILES=standalone to openappsec/.env"
+    warn "to enable local threat learning instead."
+    echo
+  fi
+
   ask_yn "Start all selected services now?" y || {
     info "Skipping startup. To start later:"
     echo "  cd $INSTALL_DIR"
@@ -465,21 +475,35 @@ step_start() {
     return 0
   }
 
-  # Pull images first (failures are non-fatal — image might build locally)
+  # Pull all images, skipping any that fail (private, auth-gated, or unavailable).
+  # --ignore-pull-failures means one denied image won't abort the whole pull.
   info "Pulling images (this may take several minutes)..."
-  sudo $DC pull "${root_services[@]}" 2>/dev/null || true
+  sudo $DC pull --ignore-pull-failures "${root_services[@]}" || true
+  echo
+
+  # --pull never (v2) / --no-pull (v1): use only locally cached images so a
+  # single missing image does not abort the entire stack.
+  local pull_flag="--pull never"
+  [[ "$DC" == "docker-compose" ]] && pull_flag="--no-pull"
 
   info "Starting core + selected services..."
-  sudo $DC up -d "${root_services[@]}"
-  ok "Root-compose services started."
+  local up_exit=0
+  sudo $DC up -d $pull_flag "${root_services[@]}" || up_exit=$?
+  if [[ $up_exit -eq 0 ]]; then
+    ok "Services started."
+  else
+    warn "Some services failed to start (exit $up_exit)."
+    warn "Services whose images could not be pulled were skipped."
+    warn "Check status with: sudo docker compose ps"
+  fi
 
   # ── Standalone apps (cloudflared, pangolin) ──────────────────────────────────
   for app in "${standalone_apps[@]}"; do
     local compose_file="$INSTALL_DIR/$app/compose.yaml"
     if [[ -f "$compose_file" ]]; then
       info "Starting $app (standalone compose)..."
-      sudo $DC -f "$compose_file" pull 2>/dev/null || true
-      sudo $DC -f "$compose_file" up -d
+      sudo $DC -f "$compose_file" pull --ignore-pull-failures 2>/dev/null || true
+      sudo $DC -f "$compose_file" up -d $pull_flag || warn "$app failed to start — check logs."
       ok "$app started."
     else
       warn "Compose file not found for $app — skipping ($compose_file)."

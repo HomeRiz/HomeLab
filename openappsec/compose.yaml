@@ -1,67 +1,104 @@
-﻿services:
-  openappsec-orchestrator:
-    container_name: homelab-openappsec-orchestrator
-    image: ghcr.io/openappsec/orchestration:latest
-    restart: always
+services:
+  appsec-agent:
+    container_name: homelab-appsec-agent
+    image: ghcr.io/openappsec/agent:${APPSEC_VERSION:-latest}
+    restart: unless-stopped
+    ipc: host
     env_file:
       - .env
     environment:
       TZ: ${TZ}
+      SHARED_STORAGE_HOST: appsec-shared-storage
+      LEARNING_HOST: appsec-smartsync
+      TUNING_HOST: appsec-tuning-svc
+      https_proxy: ${APPSEC_HTTPS_PROXY:-}
+      user_email: ${APPSEC_USER_EMAIL}
+      AGENT_TOKEN: ${APPSEC_AGENT_TOKEN:-}
+      autoPolicyLoad: ${APPSEC_AUTO_POLICY_LOAD:-false}
+      registered_server: "NGINX"
     volumes:
-      - ./conf:/etc/openappsec/conf
-      - ./data:/var/lib/openappsec
-    ports:
-      - "55555:55555"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:55555/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - ./appsec-config:/etc/cp/conf
+      - ./appsec-data:/etc/cp/data
+      - ./appsec-logs:/var/log/nano_agent
+      - ./appsec-localconfig:/ext/appsec
+      - appsec-shm:/dev/shm/check-point
+    command: /cp-nano-agent
     networks:
       - homelab-network
 
-  openappsec-agent-1:
-    container_name: homelab-openappsec-agent-1
-    image: ghcr.io/openappsec/agent:latest
-    restart: always
+  # NGINX with the OpenAppSec WAF attachment module built in.
+  # Caddy proxies inbound traffic to this container; this container
+  # applies WAF rules before forwarding requests to backend services.
+  appsec-nginx:
+    container_name: homelab-appsec-nginx
+    image: ghcr.io/openappsec/nginx-attachment:${APPSEC_VERSION:-latest}
+    restart: unless-stopped
+    ipc: host
     env_file:
       - .env
-    environment:
-      TZ: ${TZ}
-      AGENT_NAME: agent-1
-      ORCHESTRATOR_HOST: openappsec-orchestrator
     volumes:
-      - ./agent1-conf:/etc/openappsec/conf
-      - ./agent1-data:/var/lib/openappsec
-    ports:
-      - "55556:55556"
+      - ./nginx-config:/etc/nginx/conf.d
+      - appsec-shm:/dev/shm/check-point
     networks:
       - homelab-network
-    depends_on:
-      openappsec-orchestrator:
-        condition: service_healthy
 
-  openappsec-agent-2:
-    container_name: homelab-openappsec-agent-2
-    image: ghcr.io/openappsec/agent:latest
-    restart: always
-    env_file:
-      - .env
+  # ── Standalone learning services (profile: standalone) ──────────────────────
+  # Enable with COMPOSE_PROFILES=standalone in .env.
+  # Required when NOT using a token from https://my.openappsec.io.
+  # These allow local threat learning and tuning without the cloud backend.
+
+  appsec-smartsync:
+    profiles:
+      - standalone
+    container_name: homelab-appsec-smartsync
+    image: ghcr.io/openappsec/smartsync:${APPSEC_VERSION:-latest}
+    restart: unless-stopped
     environment:
-      TZ: ${TZ}
-      AGENT_NAME: agent-2
-      ORCHESTRATOR_HOST: openappsec-orchestrator
-    volumes:
-      - ./agent2-conf:/etc/openappsec/conf
-      - ./agent2-data:/var/lib/openappsec
-    ports:
-      - "55557:55557"
+      SHARED_STORAGE_HOST: appsec-shared-storage
+    depends_on:
+      - appsec-shared-storage
     networks:
       - homelab-network
+
+  appsec-shared-storage:
+    profiles:
+      - standalone
+    container_name: homelab-appsec-shared-storage
+    image: ghcr.io/openappsec/smartsync-shared-files:${APPSEC_VERSION:-latest}
+    restart: unless-stopped
+    ipc: host
+    user: root
+    volumes:
+      - ./appsec-smartsync-storage:/db:z
+    networks:
+      - homelab-network
+
+  appsec-tuning-svc:
+    profiles:
+      - standalone
+    container_name: homelab-appsec-tuning-svc
+    image: ghcr.io/openappsec/smartsync-tuning:${APPSEC_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      SHARED_STORAGE_HOST: appsec-shared-storage
+      QUERY_DB_PASSWORD: ${APPSEC_DB_PASSWORD}
+      QUERY_DB_HOST: ${APPSEC_DB_HOST:-postgres}
+      QUERY_DB_USER: ${APPSEC_DB_USER:-postgres}
+    volumes:
+      - ./appsec-config:/etc/cp/conf
     depends_on:
-      openappsec-orchestrator:
-        condition: service_healthy
+      - appsec-shared-storage
+    networks:
+      - homelab-network
+
+volumes:
+  appsec-shm:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
 
 networks:
   homelab-network:
     external: true
+    name: homelab-network
