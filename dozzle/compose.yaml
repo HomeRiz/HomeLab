@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   dozzle:
     container_name: homelab-dozzle
     image: amir20/dozzle:latest

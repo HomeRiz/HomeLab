@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   homebox:
     container_name: homelab-homebox
     image: ghcr.io/hay-kot/homebox:latest

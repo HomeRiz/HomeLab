@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   firefly-iii:
     container_name: homelab-firefly-iii
     image: fireflyiii/core:latest

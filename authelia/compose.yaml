@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   authelia:
     container_name: homelab-authelia
     image: authelia/authelia:latest

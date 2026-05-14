@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   docker-proxy:
     container_name: homelab-docker-proxy
     image: ghcr.io/tecnativa/docker-socket-proxy:latest

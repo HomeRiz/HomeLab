@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   diun:
     container_name: homelab-diun
     image: crazymax/diun:latest

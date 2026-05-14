@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   anubis:
     container_name: homelab-anubis
     image: stompstyle/anubis:latest

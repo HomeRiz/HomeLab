@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   netbird-management:
     container_name: homelab-netbird-management
     image: netbirdio/netbird-management:latest

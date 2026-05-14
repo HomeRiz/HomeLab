@@ -1,6 +1,4 @@
-version: '3.8'
-
-services:
+﻿services:
   cloudflared:
     container_name: homelab-cloudflared
     image: cloudflare/cloudflared:latest

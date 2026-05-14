@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   paperless-ngx:
     container_name: homelab-paperless-ngx
     image: ghcr.io/paperless-ngx/paperless-ngx:latest

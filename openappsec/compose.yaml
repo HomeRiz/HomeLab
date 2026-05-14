@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   openappsec-orchestrator:
     container_name: homelab-openappsec-orchestrator
     image: ghcr.io/openappsec/orchestration:latest

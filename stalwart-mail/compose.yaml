@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   stalwart-mail:
     container_name: homelab-stalwart-mail
     image: stalwartlabs/stalwart-mail:latest

@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   stirling-pdf:
     container_name: homelab-stirling-pdf
     image: frooodle/stirling-pdf:latest

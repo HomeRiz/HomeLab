@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   speedtest-tracker:
     container_name: homelab-speedtest-tracker
     image: ghcr.io/alexjustesen/speedtest-tracker:latest

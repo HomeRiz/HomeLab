@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   portracker:
     container_name: homelab-portracker
     image: ghcr.io/dan-walker/portracker:latest

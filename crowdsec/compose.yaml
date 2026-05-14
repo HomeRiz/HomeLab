@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   crowdsec:
     container_name: homelab-crowdsec
     image: crowdsecurity/crowdsec:latest

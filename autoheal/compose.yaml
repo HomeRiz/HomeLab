@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   autoheal:
     container_name: homelab-autoheal
     image: willfarrell/autoheal:latest

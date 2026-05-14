@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   linux-update-dashboard:
     container_name: homelab-linux-update-dashboard
     image: mandratech/linux-system-dashboard:latest

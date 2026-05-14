@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   uptime-kuma:
     container_name: homelab-uptime-kuma
     image: louislam/uptime-kuma:latest

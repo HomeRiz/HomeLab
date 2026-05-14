@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   watch-your-lan:
     container_name: homelab-watch-your-lan
     image: aceberg/watch_your_lan:latest

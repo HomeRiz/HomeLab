@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   dashy:
     container_name: homelab-dashy
     image: lissy93/dashy:latest

@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   geoip-blocker:
     container_name: homelab-geoip-blocker
     image: crazymax/geoip-blocker:latest

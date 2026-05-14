@@ -1,9 +1,7 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   hoarder:
     container_name: homelab-hoarder
-    image: ghcr.io/MobySchott/Hoarder:latest
+    image: ghcr.io/hoarder-app/hoarder:latest
     restart: always
     env_file:
       - .env

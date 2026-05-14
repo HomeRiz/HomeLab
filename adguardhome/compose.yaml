@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   unbound:
     container_name: homelab-unbound
     image: mvance/unbound:latest

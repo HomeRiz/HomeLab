@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   watchtower:
     container_name: homelab-watchtower
     image: containrrr/watchtower:latest

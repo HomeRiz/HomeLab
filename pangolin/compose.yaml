@@ -1,6 +1,4 @@
-version: '3.8'
-
-services:
+﻿services:
   pangolin:
     container_name: homelab-pangolin
     image: pangolin/server:latest

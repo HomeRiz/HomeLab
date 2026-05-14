@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   vaultwarden:
     container_name: homelab-vaultwarden
     image: vaultwarden/server:latest

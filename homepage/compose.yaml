@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   homepage:
     container_name: homelab-homepage
     image: ghcr.io/benphelps/homepage:latest

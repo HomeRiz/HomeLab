@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   glances:
     container_name: homelab-glances
     image: nicolargo/glances:latest
