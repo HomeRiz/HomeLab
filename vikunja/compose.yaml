@@ -1,0 +1,42 @@
+﻿version: '3.8'
+
+services:
+  vikunja:
+    container_name: homelab-vikunja
+    image: vikunja/vikunja:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      VIKUNJA_LOG_LEVEL: ${VIKUNJA_LOG_LEVEL:-info}
+      VIKUNJA_DATABASE_TYPE: postgres
+      VIKUNJA_DATABASE_USER: ${DB_VIKUNJA_USER}
+      VIKUNJA_DATABASE_PASSWORD: ${DB_VIKUNJA_PASSWORD}
+      VIKUNJA_DATABASE_HOST: postgres
+      VIKUNJA_DATABASE_PORT: 5432
+      VIKUNJA_DATABASE_NAME: ${DB_VIKUNJA_DB}
+      VIKUNJA_REDIS_ENABLED: true
+      VIKUNJA_REDIS_HOST: redis:6379
+      VIKUNJA_REDIS_PASSWORD: ${DB_REDIS_PASSWORD}
+    volumes:
+      - ./data:/app/vikunja/files
+    ports:
+      - "3006:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/info"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

@@ -1,0 +1,38 @@
+﻿version: '3.8'
+
+services:
+  speedtest-tracker:
+    container_name: homelab-speedtest-tracker
+    image: ghcr.io/alexjustesen/speedtest-tracker:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_SPEEDTEST_DB}
+      DB_USERNAME: ${DB_SPEEDTEST_USER}
+      DB_PASSWORD: ${DB_SPEEDTEST_PASSWORD}
+      SPEEDTEST_SCHEDULE: ${SPEEDTEST_SCHEDULE:-0 */6 * * *}
+      PRUNE_RESULTS: ${SPEEDTEST_PRUNE_RESULTS:-30}
+    volumes:
+      - ./data:/app/storage
+    ports:
+      - "8765:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

@@ -1,0 +1,27 @@
+﻿version: '3.8'
+
+services:
+  apprise:
+    container_name: homelab-apprise
+    image: caronc/apprise:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./config:/config
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

@@ -1,0 +1,40 @@
+﻿version: '3.8'
+
+services:
+  caddy:
+    container_name: homelab-caddy
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:-}
+      CLOUDFLARE_ZONE_API_TOKEN: ${CLOUDFLARE_ZONE_API_TOKEN:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+      - ./logs:/logs
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2019/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+    depends_on:
+      - docker-proxy
+    labels:
+      - "com.example.description=Caddy reverse proxy with WAF and security addons"
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

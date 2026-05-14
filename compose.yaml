@@ -1,0 +1,469 @@
+version: '3.8'
+
+services:
+  # Core Infrastructure
+  postgres:
+    extends:
+      file: database/compose.yaml
+      service: postgres
+    env_file:
+      - .env
+      - database/.env
+
+  redis:
+    extends:
+      file: database/compose.yaml
+      service: redis
+    env_file:
+      - .env
+      - database/.env
+
+  # Docker Socket Proxy (Security Layer)
+  docker-proxy:
+    extends:
+      file: docker-proxy/compose.yaml
+      service: docker-proxy
+    env_file:
+      - .env
+      - docker-proxy/.env
+
+  # Reverse Proxy & SSL with Caddy
+  caddy:
+    extends:
+      file: caddy/compose.yaml
+      service: caddy
+    env_file:
+      - .env
+      - caddy/.env
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+
+  # WAF & Security
+  openappsec-orchestrator:
+    extends:
+      file: openappsec/compose.yaml
+      service: openappsec-orchestrator
+    env_file:
+      - .env
+      - openappsec/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  openappsec-agent-1:
+    extends:
+      file: openappsec/compose.yaml
+      service: openappsec-agent-1
+    env_file:
+      - .env
+      - openappsec/.env
+
+  openappsec-agent-2:
+    extends:
+      file: openappsec/compose.yaml
+      service: openappsec-agent-2
+    env_file:
+      - .env
+      - openappsec/.env
+
+  # Threat Detection & Response
+  crowdsec:
+    extends:
+      file: crowdsec/compose.yaml
+      service: crowdsec
+    env_file:
+      - .env
+      - crowdsec/.env
+
+  crowdsec-bouncer:
+    extends:
+      file: crowdsec/compose.yaml
+      service: crowdsec-firewall-bouncer
+    env_file:
+      - .env
+      - crowdsec/.env
+    depends_on:
+      crowdsec:
+        condition: service_healthy
+
+  # Authentication & Authorization
+  authelia:
+    extends:
+      file: authelia/compose.yaml
+      service: authelia
+    env_file:
+      - .env
+      - authelia/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Container Management & Monitoring
+  watchtower:
+    extends:
+      file: watchtower/compose.yaml
+      service: watchtower
+    env_file:
+      - .env
+      - watchtower/.env
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+
+  diun:
+    extends:
+      file: diun/compose.yaml
+      service: diun
+    env_file:
+      - .env
+      - diun/.env
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+
+  autoheal:
+    extends:
+      file: autoheal/compose.yaml
+      service: autoheal
+    env_file:
+      - .env
+      - autoheal/.env
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+
+  # VPN & Network
+  netbird-management:
+    extends:
+      file: netbird/compose.yaml
+      service: netbird-management
+    env_file:
+      - .env
+      - netbird/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  netbird-signal:
+    extends:
+      file: netbird/compose.yaml
+      service: netbird-signal
+    env_file:
+      - .env
+      - netbird/.env
+    depends_on:
+      netbird-management:
+        condition: service_healthy
+
+  # Geo-Protection
+  geoip-blocker:
+    extends:
+      file: geoip-blocker/compose.yaml
+      service: geoip-blocker
+    env_file:
+      - .env
+      - geoip-blocker/.env
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+
+  # DNS & Site Analytics
+  anubis:
+    extends:
+      file: anubis/compose.yaml
+      service: anubis
+    env_file:
+      - .env
+      - anubis/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ============================================
+  # SECURITY & CREDENTIALS
+  # ============================================
+
+  # Vaultwarden - Self-hosted Bitwarden alternative
+  vaultwarden:
+    extends:
+      file: vaultwarden/compose.yaml
+      service: vaultwarden
+    env_file:
+      - .env
+      - vaultwarden/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Bitwarden - Official password manager
+  bitwarden:
+    extends:
+      file: bitwarden/compose.yaml
+      service: bitwarden
+    env_file:
+      - .env
+      - bitwarden/.env
+
+  # ============================================
+  # DNS & MAIL INFRASTRUCTURE
+  # ============================================
+
+  # Unbound - Recursive DNS resolver
+  unbound:
+    extends:
+      file: adguardhome/compose.yaml
+      service: unbound
+    env_file:
+      - .env
+      - adguardhome/.env
+
+  # AdGuard Home - DNS Ad blocker
+  adguardhome:
+    extends:
+      file: adguardhome/compose.yaml
+      service: adguardhome
+    env_file:
+      - .env
+      - adguardhome/.env
+    depends_on:
+      unbound:
+        condition: service_healthy
+
+  # AdGuard Home Sync - Multi-instance sync
+  adguardhome-sync:
+    extends:
+      file: adguardhome/compose.yaml
+      service: adguardhome-sync
+    env_file:
+      - .env
+      - adguardhome/.env
+    depends_on:
+      adguardhome:
+        condition: service_healthy
+
+  # Stalwart Mail - Mail server
+  stalwart-mail:
+    extends:
+      file: stalwart-mail/compose.yaml
+      service: stalwart-mail
+    env_file:
+      - .env
+      - stalwart-mail/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ============================================
+  # MONITORING & OBSERVABILITY
+  # ============================================
+
+  # Uptime Kuma - Monitoring & status page
+  uptime-kuma:
+    extends:
+      file: uptime-kuma/compose.yaml
+      service: uptime-kuma
+    env_file:
+      - .env
+      - uptime-kuma/.env
+
+  # Dozzle - Docker log viewer
+  dozzle:
+    extends:
+      file: dozzle/compose.yaml
+      service: dozzle
+    env_file:
+      - .env
+      - dozzle/.env
+
+  # Glances - System monitoring
+  glances:
+    extends:
+      file: glances/compose.yaml
+      service: glances
+    env_file:
+      - .env
+      - glances/.env
+
+  # Speedtest Tracker - Network speed monitoring
+  speedtest-tracker:
+    extends:
+      file: speedtest-tracker/compose.yaml
+      service: speedtest-tracker
+    env_file:
+      - .env
+      - speedtest-tracker/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Watch Your LAN - Network discovery
+  watch-your-lan:
+    extends:
+      file: watch-your-lan/compose.yaml
+      service: watch-your-lan
+    env_file:
+      - .env
+      - watch-your-lan/.env
+
+  # CrowdSec Console - Threat monitoring
+  crowdsec-console:
+    extends:
+      file: crowdsec-console/compose.yaml
+      service: crowdsec-console
+    env_file:
+      - .env
+      - crowdsec-console/.env
+    depends_on:
+      crowdsec:
+        condition: service_healthy
+
+  # Linux Update Dashboard - System updates
+  linux-update-dashboard:
+    extends:
+      file: linux-update-dashboard/compose.yaml
+      service: linux-update-dashboard
+    env_file:
+      - .env
+      - linux-update-dashboard/.env
+
+  # ============================================
+  # DOCUMENT & MEDIA MANAGEMENT
+  # ============================================
+
+  # Paperless-NGX - Document management
+  paperless-ngx:
+    extends:
+      file: paperless-ngx/compose.yaml
+      service: paperless-ngx
+    env_file:
+      - .env
+      - paperless-ngx/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Hoarder - Bookmarks & content management
+  hoarder:
+    extends:
+      file: hoarder/compose.yaml
+      service: hoarder
+    env_file:
+      - .env
+      - hoarder/.env
+
+  # ============================================
+  # DASHBOARDS & PORTALS
+  # ============================================
+
+  # Homepage - Application dashboard
+  homepage:
+    extends:
+      file: homepage/compose.yaml
+      service: homepage
+    env_file:
+      - .env
+      - homepage/.env
+
+  # Dashy - Web dashboard
+  dashy:
+    extends:
+      file: dashy/compose.yaml
+      service: dashy
+    env_file:
+      - .env
+      - dashy/.env
+
+  # ============================================
+  # PRODUCTIVITY & ORGANIZATION
+  # ============================================
+
+  # Homebox - Home inventory management
+  homebox:
+    extends:
+      file: homebox/compose.yaml
+      service: homebox
+    env_file:
+      - .env
+      - homebox/.env
+
+  # Firefly III - Personal finance manager
+  firefly-iii:
+    extends:
+      file: firefly-iii/compose.yaml
+      service: firefly-iii
+    env_file:
+      - .env
+      - firefly-iii/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Vikunja - Todo & project management
+  vikunja:
+    extends:
+      file: vikunja/compose.yaml
+      service: vikunja
+    env_file:
+      - .env
+      - vikunja/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ============================================
+  # UTILITIES & TOOLS
+  # ============================================
+
+  # Stirling PDF - PDF manipulation
+  stirling-pdf:
+    extends:
+      file: stirling-pdf/compose.yaml
+      service: stirling-pdf
+    env_file:
+      - .env
+      - stirling-pdf/.env
+
+  # Apprise - Notification hub
+  apprise:
+    extends:
+      file: apprise/compose.yaml
+      service: apprise
+    env_file:
+      - .env
+      - apprise/.env
+
+  # Monocker - Docker container UI
+  monocker:
+    extends:
+      file: monocker/compose.yaml
+      service: monocker
+    env_file:
+      - .env
+      - monocker/.env
+
+  # PortTracker - Port monitoring
+  portracker:
+    extends:
+      file: portracker/compose.yaml
+      service: portracker
+    env_file:
+      - .env
+      - portracker/.env
+
+networks:
+  homelab-network:
+    driver: bridge
+    name: homelab-network
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  redis_data:

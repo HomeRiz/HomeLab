@@ -1,0 +1,29 @@
+﻿version: '3.8'
+
+services:
+  linux-update-dashboard:
+    container_name: homelab-linux-update-dashboard
+    image: mandratech/linux-system-dashboard:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - /etc/os-release:/etc/os-release:ro
+      - /proc:/proc:ro
+      - /sys:/sys:ro
+    ports:
+      - "9997:5000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

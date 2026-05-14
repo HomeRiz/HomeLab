@@ -1,0 +1,60 @@
+# =============================================================================
+# HomeLab — .gitignore
+# =============================================================================
+# The .env files in this repo contain PLACEHOLDER values only.
+# Before running the stack, copy the relevant .env, fill in real credentials,
+# and NEVER commit a file that contains real passwords, tokens, or API keys.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Environment files with real credentials
+# If you create local overrides with real values, name them .env.local
+# ---------------------------------------------------------------------------
+.env.local
+**/.env.local
+
+# ---------------------------------------------------------------------------
+# Caddy logs (runtime output, not config)
+# ---------------------------------------------------------------------------
+caddy/logs/
+**/logs/*.log
+**/logs/*.gz
+
+# ---------------------------------------------------------------------------
+# Local data volumes (created when you run the stack on this machine)
+# ---------------------------------------------------------------------------
+**/data/
+**/db/
+postgres_data/
+redis_data/
+
+# ---------------------------------------------------------------------------
+# Generated certificates and private keys
+# (e.g. if Caddy or step-ca writes certs locally)
+# ---------------------------------------------------------------------------
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+password.txt
+provisioner_password.txt
+root_ca_password.txt
+
+# ---------------------------------------------------------------------------
+# Docker override files (local-only tweaks)
+# ---------------------------------------------------------------------------
+docker-compose.override.yml
+compose.override.yml
+
+# ---------------------------------------------------------------------------
+# OS / editor noise
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

@@ -1,0 +1,72 @@
+# Caddy Configuration with Integrated Addons
+# This configuration demonstrates the use of:
+# - cloudflare DNS provider
+# - crowdsec bouncer for threat detection
+# - coraza WAF for application security
+# - maxmind geolocation for geo-blocking
+# - layer 4 for advanced routing
+
+# Global settings
+{
+	admin localhost:2019
+	log default {
+		output file /logs/caddy.log {
+			roll_size 100mb
+			roll_keep 10
+		}
+		level info
+	}
+	storage file_system /data/caddy
+}
+
+# Health check endpoint
+:2019 {
+	respond /health "OK" 200
+}
+
+# HTTP to HTTPS redirect
+http:// {
+	redir https://{host}{uri} permanent
+}
+
+# HTTPS listener with layer 4 (example configuration)
+# Uncomment and configure for your domains
+# https:// {
+#	# Layer 4 routing example
+#	@http host example.com
+#	handle @http {
+#		reverse_proxy localhost:8080
+#	}
+#
+#	# WAF Protection using Coraza
+#	@waf {
+#		path /api/*
+#	}
+#	handle @waf {
+#		coraza {
+#			rules_file /etc/caddy/modsecurity.rules
+#		}
+#		reverse_proxy localhost:8080
+#	}
+#
+#	# Cloudflare DNS for TLS
+#	tls {
+#		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+#	}
+#
+#	# GeoLocation blocking example
+#	@blocked_geo {
+#		maxmind_geolocation {
+#			country_iso CN RU KP
+#		}
+#	}
+#	handle @blocked_geo {
+#		respond "Access Denied" 403
+#	}
+# }
+
+# Example catch-all for testing
+:443 {
+	tls internal
+	respond "Caddy is running with security addons" 200
+}

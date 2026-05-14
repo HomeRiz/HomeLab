@@ -1,0 +1,28 @@
+﻿version: '3.8'
+
+services:
+  anubis:
+    container_name: homelab-anubis
+    image: stompstyle/anubis:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./data:/data
+      - ./config:/etc/anubis
+    ports:
+      - "3001:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

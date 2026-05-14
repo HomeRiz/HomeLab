@@ -1,0 +1,31 @@
+﻿version: '3.8'
+
+services:
+  glances:
+    container_name: homelab-glances
+    image: nicolargo/glances:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      GLANCES_LOG_LEVEL: ${GLANCES_LOG_LEVEL:-info}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/rootfs:ro
+      - /etc/hostname:/etc/hostname:ro
+      - /etc/os-release:/etc/os-release:ro
+    ports:
+      - "61208:61208"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:61208/api/2/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

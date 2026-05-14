@@ -1,0 +1,47 @@
+﻿version: '3.8'
+
+services:
+  paperless-ngx:
+    container_name: homelab-paperless-ngx
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
+      PAPERLESS_SUPERUSER_USERNAME: ${PAPERLESS_SUPERUSER_USERNAME}
+      PAPERLESS_SUPERUSER_PASSWORD: ${PAPERLESS_SUPERUSER_PASSWORD}
+      PAPERLESS_ADMIN_USER: ${PAPERLESS_ADMIN_USER}
+      PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD}
+      PAPERLESS_DBENGINE: postgresql
+      PAPERLESS_DBHOST: postgres
+      PAPERLESS_DBPORT: 5432
+      PAPERLESS_DBNAME: ${DB_PAPERLESS_DB}
+      PAPERLESS_DBUSER: ${DB_PAPERLESS_USER}
+      PAPERLESS_DBPASS: ${DB_PAPERLESS_PASSWORD}
+      PAPERLESS_BROKER_URL: redis://:${DB_REDIS_PASSWORD}@redis:6379
+    volumes:
+      - ./data:/usr/src/paperless/data
+      - ./media:/usr/src/paperless/media
+      - ./export:/usr/src/paperless/export
+      - ./consume:/usr/src/paperless/consume
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

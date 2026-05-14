@@ -1,0 +1,26 @@
+﻿version: '3.8'
+
+services:
+  watch-your-lan:
+    container_name: homelab-watch-your-lan
+    image: aceberg/watch_your_lan:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./config:/app/data
+    ports:
+      - "8889:8080"
+    network_mode: host
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

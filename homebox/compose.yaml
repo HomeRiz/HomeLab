@@ -1,0 +1,28 @@
+﻿version: '3.8'
+
+services:
+  homebox:
+    container_name: homelab-homebox
+    image: ghcr.io/hay-kot/homebox:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      LOG_LEVEL: ${HOMEBOX_LOG_LEVEL:-info}
+    volumes:
+      - ./data:/data
+    ports:
+      - "3102:7745"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7745/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

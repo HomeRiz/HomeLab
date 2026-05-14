@@ -1,0 +1,29 @@
+﻿version: '3.8'
+
+services:
+  watchtower:
+    container_name: homelab-watchtower
+    image: containrrr/watchtower:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 86400 --cleanup
+    healthcheck:
+      test: ["CMD", "ps", "aux"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

@@ -1,0 +1,23 @@
+server:
+  protocol: http2
+  address: 0.0.0.0:5000
+
+ingress:
+  # Routes for different services
+  - hostname: vaultwarden.${CLOUDFLARE_DOMAIN}
+    service: http://vaultwarden:80
+
+  - hostname: adguard.${CLOUDFLARE_DOMAIN}
+    service: http://adguardhome:8080
+
+  - hostname: dashboard.${CLOUDFLARE_DOMAIN}
+    service: http://homepage:3000
+
+  - hostname: mail.${CLOUDFLARE_DOMAIN}
+    service: http://stalwart-mail:25
+
+  - hostname: monitoring.${CLOUDFLARE_DOMAIN}
+    service: http://uptime-kuma:3001
+
+  # Default catch-all - send to Caddy
+  - service: http://caddy:80

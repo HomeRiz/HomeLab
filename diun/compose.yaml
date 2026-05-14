@@ -1,0 +1,31 @@
+﻿version: '3.8'
+
+services:
+  diun:
+    container_name: homelab-diun
+    image: crazymax/diun:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./config:/etc/diun
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "6969:6969"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:6969/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+    depends_on:
+      docker-proxy:
+        condition: service_healthy
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

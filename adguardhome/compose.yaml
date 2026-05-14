@@ -1,0 +1,76 @@
+﻿version: '3.8'
+
+services:
+  unbound:
+    container_name: homelab-unbound
+    image: mvance/unbound:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./config/unbound.conf:/etc/unbound/unbound.conf:ro
+      - ./etc:/etc/unbound/etc
+    ports:
+      - "5353:53/udp"
+      - "5353:53/tcp"
+    healthcheck:
+      test: ["CMD", "dig", "@127.0.0.1", "-p", "5353", "google.com"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+  adguardhome:
+    container_name: homelab-adguardhome
+    image: adguard/adguardhome:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./config:/opt/adguardhome/conf
+      - ./data:/opt/adguardhome/work
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+      - "3000:3000"
+      - "3000:3000/udp"
+      - "8888:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+    depends_on:
+      unbound:
+        condition: service_healthy
+
+  adguardhome-sync:
+    container_name: homelab-adguardhome-sync
+    image: axtloss/adguardhome-sync:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      LOG_LEVEL: ${ADGUARD_SYNC_LOG_LEVEL:-info}
+    volumes:
+      - ./sync-config:/etc/adguardhome-sync
+    ports:
+      - "8080:8080"
+    networks:
+      - homelab-network
+    depends_on:
+      adguardhome:
+        condition: service_healthy
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

@@ -1,0 +1,27 @@
+﻿version: '3.8'
+
+services:
+  uptime-kuma:
+    container_name: homelab-uptime-kuma
+    image: louislam/uptime-kuma:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

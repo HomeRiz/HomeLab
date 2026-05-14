@@ -1,0 +1,43 @@
+﻿version: '3.8'
+
+services:
+  vaultwarden:
+    container_name: homelab-vaultwarden
+    image: vaultwarden/server:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      DOMAIN: https://${VAULTWARDEN_DOMAIN}
+      SIGNUPS_ALLOWED: ${VAULTWARDEN_SIGNUPS_ALLOWED:-false}
+      INVITATIONS_ALLOWED: ${VAULTWARDEN_INVITATIONS_ALLOWED:-true}
+      SHOW_PASSWORD_HINT: ${VAULTWARDEN_SHOW_PASSWORD_HINT:-false}
+      LOG_LEVEL: ${VAULTWARDEN_LOG_LEVEL:-info}
+      LOG_FILE: /data/vaultwarden.log
+      DATABASE_URL: postgresql://${DB_VAULTWARDEN_USER}:${DB_VAULTWARDEN_PASSWORD}@postgres:5432/${DB_VAULTWARDEN_DB}
+      ADMIN_TOKEN: ${VAULTWARDEN_ADMIN_TOKEN}
+      EXTENDED_LOGGING: true
+      EXTENDED_LOGGING_FORMAT: timestamp,level,target,message
+    volumes:
+      - ./data:/data
+    ports:
+      - "9999:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/alive"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network
+
+volumes:
+  vaultwarden_data:

@@ -1,0 +1,69 @@
+﻿version: '3.8'
+
+services:
+  openappsec-orchestrator:
+    container_name: homelab-openappsec-orchestrator
+    image: ghcr.io/openappsec/orchestration:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./conf:/etc/openappsec/conf
+      - ./data:/var/lib/openappsec
+    ports:
+      - "55555:55555"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:55555/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+  openappsec-agent-1:
+    container_name: homelab-openappsec-agent-1
+    image: ghcr.io/openappsec/agent:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      AGENT_NAME: agent-1
+      ORCHESTRATOR_HOST: openappsec-orchestrator
+    volumes:
+      - ./agent1-conf:/etc/openappsec/conf
+      - ./agent1-data:/var/lib/openappsec
+    ports:
+      - "55556:55556"
+    networks:
+      - homelab-network
+    depends_on:
+      openappsec-orchestrator:
+        condition: service_healthy
+
+  openappsec-agent-2:
+    container_name: homelab-openappsec-agent-2
+    image: ghcr.io/openappsec/agent:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      AGENT_NAME: agent-2
+      ORCHESTRATOR_HOST: openappsec-orchestrator
+    volumes:
+      - ./agent2-conf:/etc/openappsec/conf
+      - ./agent2-data:/var/lib/openappsec
+    ports:
+      - "55557:55557"
+    networks:
+      - homelab-network
+    depends_on:
+      openappsec-orchestrator:
+        condition: service_healthy
+
+networks:
+  homelab-network:
+    external: true

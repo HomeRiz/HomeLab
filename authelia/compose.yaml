@@ -1,0 +1,28 @@
+﻿version: '3.8'
+
+services:
+  authelia:
+    container_name: homelab-authelia
+    image: authelia/authelia:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./config/configuration.yml:/etc/authelia/configuration.yml:ro
+      - ./config/users_database.yml:/etc/authelia/users_database.yml:ro
+    ports:
+      - "9091:9091"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

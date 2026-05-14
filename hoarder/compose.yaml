@@ -1,0 +1,30 @@
+﻿version: '3.8'
+
+services:
+  hoarder:
+    container_name: homelab-hoarder
+    image: ghcr.io/MobySchott/Hoarder:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      MEILI_MASTER_KEY: ${HOARDER_MEILI_KEY}
+      NEXTAUTH_URL: https://${HOARDER_DOMAIN}
+      NEXTAUTH_SECRET: ${HOARDER_NEXTAUTH_SECRET}
+    volumes:
+      - ./data:/data
+    ports:
+      - "3005:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

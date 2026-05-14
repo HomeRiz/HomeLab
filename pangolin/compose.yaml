@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  pangolin:
+    container_name: homelab-pangolin
+    image: pangolin/server:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+      PANGOLIN_LOG_LEVEL: ${PANGOLIN_LOG_LEVEL:-info}
+    volumes:
+      - ./config:/etc/pangolin
+      - ./data:/var/lib/pangolin
+    ports:
+      - "8443:8443"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+    depends_on:
+      caddy:
+        condition: service_healthy
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

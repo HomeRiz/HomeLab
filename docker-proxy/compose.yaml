@@ -1,0 +1,27 @@
+﻿version: '3.8'
+
+services:
+  docker-proxy:
+    container_name: homelab-docker-proxy
+    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "2375:2375"
+    healthcheck:
+      test: ["CMD", "socat", "-V"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network

@@ -1,0 +1,28 @@
+﻿version: '3.8'
+
+services:
+  portracker:
+    container_name: homelab-portracker
+    image: ghcr.io/dan-walker/portracker:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ./config:/app/config
+      - ./data:/app/data
+    ports:
+      - "3104:3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - homelab-network
+
+networks:
+  homelab-network:
+    external: true
+    name: homelab-network
