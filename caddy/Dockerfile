@@ -1,4 +1,4 @@
-FROM caddy:latest-builder AS builder
+FROM caddy:2.11.7-builder AS builder
 
 RUN xcaddy build \
     --with github.com/caddy-dns/cloudflare \
@@ -7,6 +7,6 @@ RUN xcaddy build \
     --with github.com/anujc4/caddy-maxmind-geolocation \
     --with github.com/mholt/caddy-l4
 
-FROM caddy:latest
+FROM caddy:2.11.7
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
