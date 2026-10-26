@@ -23,7 +23,7 @@
 
   redis:
     container_name: homelab-redis
-    image: redis:7-alpine
+    image: redis:8-alpine
     restart: always
     command: redis-server --requirepass ${DB_REDIS_PASSWORD}
     volumes:
